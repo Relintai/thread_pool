@@ -12,7 +12,7 @@ sources = [
 
     "register_types.cpp",
 
-    "fast_quadratic_mesh_simplifier.cpp",
+    "thread_pool.cpp",
 ]
 
 if ARGUMENTS.get('custom_modules_shared', 'no') == 'yes':
