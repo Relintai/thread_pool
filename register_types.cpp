@@ -1,7 +1,5 @@
 #include "register_types.h"
 
-#include "thread_pool.h"
-
 /*
 
 Copyright (c) 2020 Péter Magyar
@@ -26,9 +24,21 @@ SOFTWARE.
 
 */
 
+#include "core/engine.h"
+
+#include "thread_pool.h"
+
+static ThreadPool *thread_pool = NULL;
+
 void register_thread_pool_types() {
+
+	thread_pool = memnew(ThreadPool);
 	ClassDB::register_class<ThreadPool>();
+	Engine::get_singleton()->add_singleton(Engine::Singleton("ThreadPool", ThreadPool::get_singleton()));
 }
 
 void unregister_thread_pool_types() {
+	if (thread_pool) {
+		memdelete(thread_pool);
+	}
 }

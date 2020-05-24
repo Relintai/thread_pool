@@ -24,7 +24,14 @@ SOFTWARE.
 
 */
 
+ThreadPool *ThreadPool::_instance;
+
+ThreadPool *ThreadPool::get_singleton() {
+	return _instance;
+}
+
 ThreadPool::ThreadPool() {
+	_instance = this;
 }
 
 ThreadPool::~ThreadPool() {

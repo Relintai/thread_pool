@@ -31,6 +31,8 @@ class ThreadPool : public Object {
 	GDCLASS(ThreadPool, Object);
 
 public:
+	static ThreadPool *get_singleton();
+
 	ThreadPool();
 	~ThreadPool();
 
@@ -38,6 +40,7 @@ protected:
 	static void _bind_methods();
 
 private:
+	static ThreadPool *_instance;
 };
 
 #endif
