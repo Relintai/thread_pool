@@ -132,6 +132,9 @@ void ThreadPool::cancel_task(Ref<ThreadPoolJob> job) {
 }
 
 Ref<ThreadPoolJob> ThreadPool::get_running_job(const Variant &object, const StringName &method) {
+	if (!_use_threads)
+		return _queue[_current_queue_head];
+
 	for (int i = 0; i < _threads.size(); ++i) {
 		Ref<ThreadPoolJob> j = _threads[i]->job;
 
