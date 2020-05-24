@@ -9,6 +9,7 @@ sources = [
     "register_types.cpp",
 
     "thread_pool.cpp",
+    "thread_pool_job.cpp",
 ]
 
 if ARGUMENTS.get('custom_modules_shared', 'no') == 'yes':

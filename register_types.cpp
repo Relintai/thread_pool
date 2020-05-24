@@ -27,10 +27,13 @@ SOFTWARE.
 #include "core/engine.h"
 
 #include "thread_pool.h"
+#include "thread_pool_job.h"
 
 static ThreadPool *thread_pool = NULL;
 
 void register_thread_pool_types() {
+
+	ClassDB::register_class<ThreadPoolJob>();
 
 	thread_pool = memnew(ThreadPool);
 	ClassDB::register_class<ThreadPool>();

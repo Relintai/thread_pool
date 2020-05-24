@@ -31,7 +31,8 @@ def configure(env):
 
 def get_doc_classes():
     return [
-        "",
+        "ThreadPool",
+        "ThreadPoolJob",
     ]
 
 def get_doc_path():
