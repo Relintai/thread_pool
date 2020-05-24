@@ -94,12 +94,12 @@ float ThreadPoolJob::get_current_execution_time() {
 
 bool ThreadPoolJob::should_do(const bool just_check) {
 	if (just_check) {
-		return _current_run_stage < _stage;
+		return _current_run_stage == _stage;
 	}
 
 	if (_current_run_stage < _stage) {
 		++_current_run_stage;
-		return true;
+		return false;
 	}
 
 	++_current_run_stage;
@@ -109,12 +109,12 @@ bool ThreadPoolJob::should_do(const bool just_check) {
 }
 bool ThreadPoolJob::should_return() {
 	if (_cancelled)
-		return false;
-
-	if (!_limit_execution_time)
 		return true;
 
-	return get_current_execution_time() < _limit_execution_time;
+	if (!_limit_execution_time)
+		return false;
+
+	return get_current_execution_time() >= _limit_execution_time;
 }
 
 void ThreadPoolJob::execute() {
