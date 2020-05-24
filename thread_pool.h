@@ -27,11 +27,31 @@ SOFTWARE.
 
 #include "core/object.h"
 
+#include "core/os/semaphore.h"
+#include "core/os/thread.h"
+#include "core/os/thread_safe.h"
+#include "core/vector.h"
 #include "core/version.h"
 #include "thread_pool_job.h"
 
 class ThreadPool : public Object {
 	GDCLASS(ThreadPool, Object);
+
+	_THREAD_SAFE_CLASS_
+
+protected:
+	struct ThreadPoolContext {
+		Thread *thread;
+		Semaphore *semaphore;
+		Ref<ThreadPoolJob> job;
+		bool running;
+
+		ThreadPoolContext() {
+			thread = NULL;
+			semaphore = NULL;
+			running = false;
+		}
+	};
 
 public:
 	static ThreadPool *get_singleton();
@@ -48,14 +68,25 @@ public:
 	float get_max_time_per_frame() const;
 	void set_max_time_per_frame(const bool value);
 
-	Ref<ThreadPoolJob> get_job(const Variant &object, const StringName &method, const bool create_if_needed = true);
+	Ref<ThreadPoolJob> get_running_job(const Variant &object, const StringName &method);
+	Ref<ThreadPoolJob> get_queued_job(const Variant &object, const StringName &method);
+
 	void add_job(const Ref<ThreadPoolJob> &job);
+
+	Ref<ThreadPoolJob> create_job_simple(const Variant &object, const StringName &method);
+
 	Ref<ThreadPoolJob> create_job(const Variant &object, const StringName &method, VARIANT_ARG_LIST);
 #if VERSION_MAJOR < 4
 	Variant _create_job_bind(const Variant **p_args, int p_argcount, Variant::CallError &r_error);
 #else
 	Variant _create_job_bind(const Variant **p_args, int p_argcount, Callable::CallError &r_error);
 #endif
+
+	void _thread_finished(ThreadPoolContext *context);
+	static void _worker_thread_func(void *user_data);
+
+	void reqister_update();
+	void update();
 
 	ThreadPool();
 	~ThreadPool();
@@ -70,6 +101,18 @@ private:
 	int _thread_count;
 	float _max_work_per_frame_percent;
 	float _max_time_per_frame;
+
+	Vector<ThreadPoolContext *> _threads;
+
+	Vector<Ref<ThreadPoolJob> > _queue;
+	int _current_queue_head;
+	int _current_queue_tail;
+
+	int _queue_start_size;
+	int _queue_grow_size;
+
+	//todo
+	//Vector<Ref<ThreadPoolJob> > _job_pool;
 };
 
 #endif

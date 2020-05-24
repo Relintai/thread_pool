@@ -27,6 +27,17 @@ SOFTWARE.
 #include "core/engine.h"
 #include "core/os/os.h"
 #include "core/project_settings.h"
+#include "scene/main/scene_tree.h"
+
+#include "core/version.h"
+
+#if VERSION_MAJOR >= 4
+#define CONNECT(sig, obj, target_method_class, method) connect(sig, callable_mp(obj, &target_method_class::method))
+#define DISCONNECT(sig, obj, target_method_class, method) disconnect(sig, callable_mp(obj, &target_method_class::method))
+#else
+#define CONNECT(sig, obj, target_method_class, method) connect(sig, obj, #method)
+#define DISCONNECT(sig, obj, target_method_class, method) disconnect(sig, obj, #method)
+#endif
 
 ThreadPool *ThreadPool::_instance;
 
@@ -62,11 +73,82 @@ void ThreadPool::set_max_time_per_frame(const bool value) {
 	_max_time_per_frame = value;
 }
 
-Ref<ThreadPoolJob> ThreadPool::get_job(const Variant &object, const StringName &method, const bool create_if_needed) {
+Ref<ThreadPoolJob> ThreadPool::get_running_job(const Variant &object, const StringName &method) {
+	for (int i = 0; i < _threads.size(); ++i) {
+		Ref<ThreadPoolJob> j = _threads[i]->job;
+
+		if (!j.is_valid())
+			continue;
+
+		if (j->get_object() == object && j->get_method() == method) {
+			return j;
+		}
+	}
+
+	ERR_FAIL_V(Ref<ThreadPoolJob>());
+}
+
+Ref<ThreadPoolJob> ThreadPool::get_queued_job(const Variant &object, const StringName &method) {
+	for (int i = 0; i < _queue.size(); ++i) {
+		Ref<ThreadPoolJob> j = _queue[i];
+
+		ERR_CONTINUE(!j.is_valid());
+
+		if (j->get_object() == object && j->get_method() == method) {
+			return j;
+		}
+	}
+
 	return Ref<ThreadPoolJob>();
 }
 
 void ThreadPool::add_job(const Ref<ThreadPoolJob> &job) {
+
+	_THREAD_SAFE_METHOD_
+
+	if (_use_threads) {
+		for (int i = 0; i < _threads.size(); ++i) {
+			ThreadPoolContext *context = _threads.get(i);
+
+			if (!context->job.is_valid()) {
+				context->job = job;
+				context->semaphore->post();
+				return;
+			}
+		}
+	}
+
+	if ((_current_queue_tail + 1) == _queue.size()) {
+		_queue.resize(_queue.size() + _queue_grow_size);
+
+		if (_current_queue_head > 0) {
+			int j = -1;
+
+			for (int i = _current_queue_head; i < _current_queue_tail; ++i) {
+				_queue.write[++j] = _queue[i];
+			}
+
+			_current_queue_head = 0;
+			_current_queue_tail = j;
+		}
+	}
+
+	++_current_queue_tail;
+
+	_queue.write[_current_queue_tail] = job;
+}
+
+Ref<ThreadPoolJob> ThreadPool::create_job_simple(const Variant &obj, const StringName &p_method) {
+	Ref<ThreadPoolJob> job;
+	job.instance();
+
+	job->setup(obj, p_method);
+
+	ERR_FAIL_COND_V(job->get_complete(), job);
+
+	add_job(job);
+
+	return job;
 }
 
 Ref<ThreadPoolJob> ThreadPool::create_job(const Variant &obj, const StringName &p_method, VARIANT_ARG_DECLARE) {
@@ -125,8 +207,6 @@ Variant ThreadPool::_create_job_bind(const Variant **p_args, int p_argcount, Cal
 	Ref<ThreadPoolJob> job;
 	job.instance();
 
-	ERR_FAIL_COND_V(job->get_complete(), job);
-
 	job->_setup_bind(p_args, p_argcount, r_error);
 
 	ERR_FAIL_COND_V(job->get_complete(), job);
@@ -136,13 +216,79 @@ Variant ThreadPool::_create_job_bind(const Variant **p_args, int p_argcount, Cal
 	return job;
 }
 
+void ThreadPool::_thread_finished(ThreadPoolContext *context) {
+
+	_THREAD_SAFE_METHOD_
+
+	if (_current_queue_head != _current_queue_tail) {
+		context->job = _queue.get(_current_queue_head);
+		context->semaphore->post();
+		_queue.write[_current_queue_head].unref();
+
+		++_current_queue_head;
+	}
+}
+
+void ThreadPool::_worker_thread_func(void *user_data) {
+	ThreadPoolContext *context = reinterpret_cast<ThreadPoolContext *>(user_data);
+
+	while (context->running) {
+		context->semaphore->wait();
+
+		if (!context->job.is_valid())
+			continue;
+
+		context->job->execute();
+		context->job.unref();
+		ThreadPool::get_singleton()->_thread_finished(context);
+	}
+}
+
+void ThreadPool::reqister_update() {
+	SceneTree::get_singleton()->CONNECT("idle_frame", this, ThreadPool, update);
+}
+
+void ThreadPool::update() {
+	if (_current_queue_head == _current_queue_tail)
+		return;
+
+	float remaining_time = _max_time_per_frame;
+
+	while (remaining_time > 0 && _current_queue_head != _current_queue_tail) {
+		Ref<ThreadPoolJob> job = _queue.get(_current_queue_head);
+
+		if (!job.is_valid()) {
+			++_current_queue_head;
+
+			continue;
+		}
+
+		job->set_max_allocated_time(remaining_time);
+
+		job->execute();
+
+		remaining_time -= job->get_current_execution_time();
+
+		if (job->get_complete()) {
+			_queue.write[_current_queue_head].unref();
+		}
+	}
+}
+
 ThreadPool::ThreadPool() {
 	_instance = this;
+
+	_current_queue_head = 0;
+	_current_queue_tail = 0;
 
 	_use_threads = GLOBAL_DEF("thread_pool/use_threads", true);
 	_thread_count = GLOBAL_DEF("thread_pool/thread_count", 4);
 	//Todo Add help text, as this will only come into play if threading is disabled, or not available
 	_max_work_per_frame_percent = GLOBAL_DEF("thread_pool/max_work_per_frame_percent", 25);
+
+	_queue_start_size = GLOBAL_DEF("thread_pool/_queue_start_size", 20);
+	_queue_grow_size = GLOBAL_DEF("thread_pool/_queue_grow_size", 10);
+	_queue.resize(_queue_start_size);
 
 	//Todo this should be recalculated constantly to smooth out performance better
 	_max_time_per_frame = Engine::get_singleton()->get_target_fps() * (_max_work_per_frame_percent / 100.0);
@@ -150,9 +296,46 @@ ThreadPool::ThreadPool() {
 	if (!OS::get_singleton()->can_use_threads()) {
 		_use_threads = false;
 	}
+
+	if (_use_threads) {
+		_threads.resize(_thread_count);
+
+		for (int i = 0; i < _threads.size(); ++i) {
+			ThreadPoolContext *context = memnew(ThreadPoolContext);
+
+			context->running = true;
+			context->semaphore = Semaphore::create();
+			context->thread = Thread::create(ThreadPool::_worker_thread_func, context);
+
+			_threads.write[i] = context;
+		}
+	} else {
+		call_deferred("register_update");
+	}
 }
 
 ThreadPool::~ThreadPool() {
+	for (int i = 0; i < _threads.size(); ++i) {
+		ThreadPoolContext *context = _threads.get(i);
+
+		context->running = false;
+		context->semaphore->post();
+	}
+
+	for (int i = 0; i < _threads.size(); ++i) {
+		ThreadPoolContext *context = _threads.get(i);
+		Thread::wait_to_finish(context->thread);
+
+		memdelete(context->thread);
+		memdelete(context->semaphore);
+		context->job.unref();
+		memdelete(context);
+	}
+
+	_threads.clear();
+
+	_queue.clear();
+	//_job_pool.clear();
 }
 
 void ThreadPool::_bind_methods() {
@@ -172,6 +355,8 @@ void ThreadPool::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_max_time_per_frame", "value"), &ThreadPool::set_max_time_per_frame);
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "max_time_per_frame"), "set_max_time_per_frame", "get_max_time_per_frame");
 
+	ClassDB::bind_method(D_METHOD("create_job_simple", "object", "method"), &ThreadPool::create_job_simple);
+
 	MethodInfo mi;
 	mi.arguments.push_back(PropertyInfo(Variant::OBJECT, "obj"));
 	mi.arguments.push_back(PropertyInfo(Variant::STRING, "method"));
@@ -179,6 +364,11 @@ void ThreadPool::_bind_methods() {
 	mi.name = "create_job";
 	ClassDB::bind_vararg_method(METHOD_FLAGS_DEFAULT, "create_job", &ThreadPool::_create_job_bind, mi);
 
-	ClassDB::bind_method(D_METHOD("get_job", "object", "method", "create_if_needed"), &ThreadPool::get_job, DEFVAL(true));
+	ClassDB::bind_method(D_METHOD("get_running_job", "object", "method"), &ThreadPool::get_running_job);
+	ClassDB::bind_method(D_METHOD("get_queued_job", "object", "method"), &ThreadPool::get_queued_job);
+
 	ClassDB::bind_method(D_METHOD("add_job", "job"), &ThreadPool::add_job);
+
+	ClassDB::bind_method(D_METHOD("reqister_update"), &ThreadPool::reqister_update);
+	ClassDB::bind_method(D_METHOD("update"), &ThreadPool::update);
 }

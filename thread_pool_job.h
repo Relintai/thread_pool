@@ -49,9 +49,15 @@ public:
 	int get_stage() const;
 	void set_stage(const int value);
 
+	Variant get_object() const;
+	void set_object(const Variant &value);
+
+	StringName get_method() const;
+	void set_method(const StringName &value);
+
 	float get_current_execution_time();
 
-	bool should_skip();
+	bool should_skip(const bool just_check = false);
 	bool should_continue();
 
 	void execute();
@@ -73,14 +79,15 @@ private:
 
 	bool _limit_execution_time;
 	float _max_allocated_time;
-	int _start_time;
+	uint64_t _start_time;
 
 	int _current_run_stage;
 	int _stage;
 
 	Object *_object;
 	StringName _method;
-	const Variant *argptr[5];
+	int _argcount;
+	Variant *_argptr;
 };
 
 #endif

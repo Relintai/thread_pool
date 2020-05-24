@@ -22,6 +22,9 @@ SOFTWARE.
 
 #include "thread_pool_job.h"
 
+#include "core/os/os.h"
+#include "core/variant.h"
+
 bool ThreadPoolJob::get_complete() const {
 	return _complete;
 }
@@ -64,11 +67,29 @@ void ThreadPoolJob::set_stage(const int value) {
 	_stage = value;
 }
 
-float ThreadPoolJob::get_current_execution_time() {
-	return 0;
+Variant ThreadPoolJob::get_object() const {
+	return _object;
+}
+void ThreadPoolJob::set_object(const Variant &value) {
+	_object = value;
 }
 
-bool ThreadPoolJob::should_skip() {
+StringName ThreadPoolJob::get_method() const {
+	return _method;
+}
+void ThreadPoolJob::set_method(const StringName &value) {
+	_method = value;
+}
+
+float ThreadPoolJob::get_current_execution_time() {
+	return (OS::get_singleton()->get_system_time_msecs() - _start_time) / 1000.0;
+}
+
+bool ThreadPoolJob::should_skip(const bool just_check) {
+	if (just_check) {
+		return _current_run_stage < _stage;
+	}
+
 	if (_current_run_stage < _stage) {
 		++_current_run_stage;
 		return true;
@@ -83,14 +104,19 @@ bool ThreadPoolJob::should_continue() {
 	if (!_limit_execution_time)
 		return true;
 
-	return true;
+	return get_current_execution_time() < _limit_execution_time;
 }
 
 void ThreadPoolJob::execute() {
 	ERR_FAIL_COND(!_object);
 	ERR_FAIL_COND(!_object->has_method(_method));
 
-	_object->call(_method, argptr[0], argptr[1], argptr[2], argptr[3], argptr[4]);
+	_current_run_stage = 0;
+	_start_time = OS::get_singleton()->get_system_time_msecs();
+
+	Variant::CallError error;
+
+	_object->call(_method, const_cast<const Variant **>(&_argptr), _argcount, error);
 }
 
 void ThreadPoolJob::setup(const Variant &obj, const StringName &p_method, VARIANT_ARG_DECLARE) {
@@ -98,11 +124,18 @@ void ThreadPoolJob::setup(const Variant &obj, const StringName &p_method, VARIAN
 	_object = obj;
 	_method = p_method;
 
-	argptr[0] = &p_arg1;
-	argptr[1] = &p_arg2;
-	argptr[2] = &p_arg3;
-	argptr[3] = &p_arg4;
-	argptr[4] = &p_arg5;
+	_argptr[0] = p_arg1;
+	_argptr[1] = p_arg2;
+	_argptr[2] = p_arg3;
+	_argptr[3] = p_arg4;
+	_argptr[4] = p_arg5;
+
+	for (int i = 4; i >= 0; --i) {
+		if (_argptr[i].get_type() != Variant::NIL) {
+			_argcount = i + 1;
+			break;
+		}
+	}
 
 	if (!_object || !_object->has_method(p_method)) {
 		_complete = true;
@@ -153,23 +186,35 @@ Variant ThreadPoolJob::_setup_bind(const Variant **p_args, int p_argcount, Calla
 	}
 
 	_complete = false;
-	_object = *argptr[0];
-	_method = *argptr[1];
+	_object = *p_args[0];
 
-	if (p_argcount > 2)
-		argptr[0] = argptr[2];
+	StringName sn = *p_args[1];
+	_method = sn;
 
-	if (p_argcount > 3)
-		argptr[1] = argptr[3];
+	if (p_argcount > 2) {
+		_argcount = 1;
+		_argptr[0] = p_args[2];
+	}
 
-	if (p_argcount > 4)
-		argptr[2] = argptr[4];
+	if (p_argcount > 3) {
+		_argcount = 2;
+		_argptr[1] = p_args[3];
+	}
 
-	if (p_argcount > 5)
-		argptr[3] = argptr[5];
+	if (p_argcount > 4) {
+		_argcount = 3;
+		_argptr[2] = p_args[4];
+	}
 
-	if (p_argcount > 6)
-		argptr[4] = argptr[6];
+	if (p_argcount > 5) {
+		_argcount = 4;
+		_argptr[3] = p_args[5];
+	}
+
+	if (p_argcount > 6) {
+		_argcount = 5;
+		_argptr[4] = p_args[6];
+	}
 
 	if (!_object || !_object->has_method(_method)) {
 		_complete = true;
@@ -195,8 +240,13 @@ ThreadPoolJob::ThreadPoolJob() {
 	_stage = 0;
 
 	_object = NULL;
+
+	_argcount = 0;
+
+	_argptr = memnew_arr(Variant, 5);
 }
 ThreadPoolJob::~ThreadPoolJob() {
+	memdelete_arr(_argptr);
 }
 
 void ThreadPoolJob::_bind_methods() {
@@ -222,7 +272,7 @@ void ThreadPoolJob::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("get_current_execution_time"), &ThreadPoolJob::get_current_execution_time);
 
-	ClassDB::bind_method(D_METHOD("should_skip"), &ThreadPoolJob::should_skip);
+	ClassDB::bind_method(D_METHOD("should_skip", "just_check"), &ThreadPoolJob::should_skip, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("should_continue"), &ThreadPoolJob::should_continue);
 
 	ClassDB::bind_method(D_METHOD("execute"), &ThreadPoolJob::execute);
