@@ -92,6 +92,7 @@ void ThreadPoolJob::execute() {
 
 	_object->call(_method, argptr[0], argptr[1], argptr[2], argptr[3], argptr[4]);
 }
+
 void ThreadPoolJob::setup(const Variant &obj, const StringName &p_method, VARIANT_ARG_DECLARE) {
 	_complete = false;
 	_object = obj;

@@ -27,11 +27,35 @@ SOFTWARE.
 
 #include "core/object.h"
 
+#include "core/version.h"
+#include "thread_pool_job.h"
+
 class ThreadPool : public Object {
 	GDCLASS(ThreadPool, Object);
 
 public:
 	static ThreadPool *get_singleton();
+
+	bool get_use_threads() const;
+	void set_use_threads(const bool value);
+
+	int get_thread_count() const;
+	void set_thread_count(const bool value);
+
+	float get_max_work_per_frame_percent() const;
+	void set_max_work_per_frame_percent(const bool value);
+
+	float get_max_time_per_frame() const;
+	void set_max_time_per_frame(const bool value);
+
+	Ref<ThreadPoolJob> get_job(const Variant &object, const StringName &method, const bool create_if_needed = true);
+	void add_job(const Ref<ThreadPoolJob> &job);
+	Ref<ThreadPoolJob> create_job(const Variant &object, const StringName &method, VARIANT_ARG_LIST);
+#if VERSION_MAJOR < 4
+	Variant _create_job_bind(const Variant **p_args, int p_argcount, Variant::CallError &r_error);
+#else
+	Variant _create_job_bind(const Variant **p_args, int p_argcount, Callable::CallError &r_error);
+#endif
 
 	ThreadPool();
 	~ThreadPool();
@@ -41,6 +65,11 @@ protected:
 
 private:
 	static ThreadPool *_instance;
+
+	bool _use_threads;
+	int _thread_count;
+	float _max_work_per_frame_percent;
+	float _max_time_per_frame;
 };
 
 #endif
