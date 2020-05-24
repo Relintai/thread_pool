@@ -305,7 +305,7 @@ void ThreadPool::_worker_thread_func(void *user_data) {
 	}
 }
 
-void ThreadPool::reqister_update() {
+void ThreadPool::register_update() {
 	SceneTree::get_singleton()->CONNECT("idle_frame", this, ThreadPool, update);
 }
 
@@ -430,7 +430,7 @@ void ThreadPool::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("add_job", "job"), &ThreadPool::add_job);
 
-	ClassDB::bind_method(D_METHOD("reqister_update"), &ThreadPool::reqister_update);
+	ClassDB::bind_method(D_METHOD("register_update"), &ThreadPool::register_update);
 	ClassDB::bind_method(D_METHOD("update"), &ThreadPool::update);
 
 	ClassDB::bind_method(D_METHOD("cancel_task_wait", "job"), &ThreadPool::cancel_task_wait);

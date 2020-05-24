@@ -88,7 +88,7 @@ public:
 	void _thread_finished(ThreadPoolContext *context);
 	static void _worker_thread_func(void *user_data);
 
-	void reqister_update();
+	void register_update();
 	void update();
 
 	ThreadPool();
