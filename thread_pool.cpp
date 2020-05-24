@@ -325,7 +325,6 @@ void ThreadPool::update() {
 		}
 
 		job->set_max_allocated_time(remaining_time);
-
 		job->execute();
 
 		remaining_time -= job->get_current_execution_time();
@@ -347,12 +346,12 @@ ThreadPool::ThreadPool() {
 	//Todo Add help text, as this will only come into play if threading is disabled, or not available
 	_max_work_per_frame_percent = GLOBAL_DEF("thread_pool/max_work_per_frame_percent", 25);
 
-	_queue_start_size = GLOBAL_DEF("thread_pool/_queue_start_size", 20);
-	_queue_grow_size = GLOBAL_DEF("thread_pool/_queue_grow_size", 10);
+	_queue_start_size = GLOBAL_DEF("thread_pool/queue_start_size", 20);
+	_queue_grow_size = GLOBAL_DEF("thread_pool/queue_grow_size", 10);
 	_queue.resize(_queue_start_size);
 
 	//Todo this should be recalculated constantly to smooth out performance better
-	_max_time_per_frame = Engine::get_singleton()->get_target_fps() * (_max_work_per_frame_percent / 100.0);
+	_max_time_per_frame = (1 / 60.0) * (_max_work_per_frame_percent / 100.0);
 
 	if (!OS::get_singleton()->can_use_threads()) {
 		_use_threads = false;
