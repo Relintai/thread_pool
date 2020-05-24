@@ -68,6 +68,9 @@ public:
 	float get_max_time_per_frame() const;
 	void set_max_time_per_frame(const bool value);
 
+	void cancel_task_wait(Ref<ThreadPoolJob> job);
+	void cancel_task(Ref<ThreadPoolJob> job);
+
 	Ref<ThreadPoolJob> get_running_job(const Variant &object, const StringName &method);
 	Ref<ThreadPoolJob> get_queued_job(const Variant &object, const StringName &method);
 

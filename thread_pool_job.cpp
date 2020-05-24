@@ -32,6 +32,13 @@ void ThreadPoolJob::set_complete(const bool value) {
 	_complete = value;
 }
 
+bool ThreadPoolJob::get_cancelled() const {
+	return _cancelled;
+}
+void ThreadPoolJob::set_cancelled(const bool value) {
+	_cancelled = value;
+}
+
 bool ThreadPoolJob::get_limit_execution_time() const {
 	return _limit_execution_time;
 }
@@ -101,6 +108,9 @@ bool ThreadPoolJob::should_skip(const bool just_check) {
 	return false;
 }
 bool ThreadPoolJob::should_continue() {
+	if (_cancelled)
+		return false;
+
 	if (!_limit_execution_time)
 		return true;
 
@@ -121,6 +131,7 @@ void ThreadPoolJob::execute() {
 
 void ThreadPoolJob::setup(const Variant &obj, const StringName &p_method, VARIANT_ARG_DECLARE) {
 	_complete = false;
+	_cancelled = false;
 	_object = obj;
 	_method = p_method;
 
@@ -231,6 +242,7 @@ Variant ThreadPoolJob::_setup_bind(const Variant **p_args, int p_argcount, Calla
 
 ThreadPoolJob::ThreadPoolJob() {
 	_complete = true;
+	_cancelled = false;
 
 	_limit_execution_time = false;
 	_max_allocated_time = 0;

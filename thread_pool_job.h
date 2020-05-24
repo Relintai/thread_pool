@@ -34,6 +34,9 @@ public:
 	bool get_complete() const;
 	void set_complete(const bool value);
 
+	bool get_cancelled() const;
+	void set_cancelled(const bool value);
+
 	bool get_limit_execution_time() const;
 	void set_limit_execution_time(const bool value);
 
@@ -76,6 +79,7 @@ protected:
 
 private:
 	bool _complete;
+	bool _cancelled;
 
 	bool _limit_execution_time;
 	float _max_allocated_time;

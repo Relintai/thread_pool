@@ -73,6 +73,64 @@ void ThreadPool::set_max_time_per_frame(const bool value) {
 	_max_time_per_frame = value;
 }
 
+void ThreadPool::cancel_task_wait(Ref<ThreadPoolJob> job) {
+	ERR_FAIL_COND(!job.is_valid());
+
+	_THREAD_SAFE_LOCK_
+
+	for (int i = 0; i < _queue.size(); ++i) {
+		Ref<ThreadPoolJob> j = _queue[i];
+
+		if (j == job) {
+			_queue.write[i].unref();
+			_THREAD_SAFE_UNLOCK_
+			return;
+		}
+	}
+
+	_THREAD_SAFE_UNLOCK_
+
+	for (int i = 0; i < _threads.size(); ++i) {
+		Ref<ThreadPoolJob> j = _threads[i]->job;
+
+		if (j == job) {
+			job->set_cancelled(true);
+
+			while (_threads[i]->job == job) {
+				OS::get_singleton()->delay_usec(1000);
+			}
+
+			return;
+		}
+	}
+}
+void ThreadPool::cancel_task(Ref<ThreadPoolJob> job) {
+	ERR_FAIL_COND(!job.is_valid());
+
+	_THREAD_SAFE_LOCK_
+
+	for (int i = 0; i < _queue.size(); ++i) {
+		Ref<ThreadPoolJob> j = _queue[i];
+
+		if (j == job) {
+			_queue.write[i].unref();
+			_THREAD_SAFE_UNLOCK_
+			return;
+		}
+	}
+
+	_THREAD_SAFE_UNLOCK_
+
+	for (int i = 0; i < _threads.size(); ++i) {
+		Ref<ThreadPoolJob> j = _threads[i]->job;
+
+		if (j == job) {
+			job->set_cancelled(true);
+			return;
+		}
+	}
+}
+
 Ref<ThreadPoolJob> ThreadPool::get_running_job(const Variant &object, const StringName &method) {
 	for (int i = 0; i < _threads.size(); ++i) {
 		Ref<ThreadPoolJob> j = _threads[i]->job;
@@ -371,4 +429,7 @@ void ThreadPool::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("reqister_update"), &ThreadPool::reqister_update);
 	ClassDB::bind_method(D_METHOD("update"), &ThreadPool::update);
+
+	ClassDB::bind_method(D_METHOD("cancel_task_wait", "job"), &ThreadPool::cancel_task_wait);
+	ClassDB::bind_method(D_METHOD("cancel_task", "job"), &ThreadPool::cancel_task);
 }
