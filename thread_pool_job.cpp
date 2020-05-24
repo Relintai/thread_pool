@@ -92,7 +92,7 @@ float ThreadPoolJob::get_current_execution_time() {
 	return (OS::get_singleton()->get_system_time_msecs() - _start_time) / 1000.0;
 }
 
-bool ThreadPoolJob::should_skip(const bool just_check) {
+bool ThreadPoolJob::should_do(const bool just_check) {
 	if (just_check) {
 		return _current_run_stage < _stage;
 	}
@@ -107,7 +107,7 @@ bool ThreadPoolJob::should_skip(const bool just_check) {
 
 	return false;
 }
-bool ThreadPoolJob::should_continue() {
+bool ThreadPoolJob::should_return() {
 	if (_cancelled)
 		return false;
 
@@ -284,8 +284,8 @@ void ThreadPoolJob::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("get_current_execution_time"), &ThreadPoolJob::get_current_execution_time);
 
-	ClassDB::bind_method(D_METHOD("should_skip", "just_check"), &ThreadPoolJob::should_skip, DEFVAL(false));
-	ClassDB::bind_method(D_METHOD("should_continue"), &ThreadPoolJob::should_continue);
+	ClassDB::bind_method(D_METHOD("should_do", "just_check"), &ThreadPoolJob::should_do, DEFVAL(false));
+	ClassDB::bind_method(D_METHOD("should_return"), &ThreadPoolJob::should_return);
 
 	ClassDB::bind_method(D_METHOD("execute"), &ThreadPoolJob::execute);
 

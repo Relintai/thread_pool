@@ -60,8 +60,8 @@ public:
 
 	float get_current_execution_time();
 
-	bool should_skip(const bool just_check = false);
-	bool should_continue();
+	bool should_do(const bool just_check = false);
+	bool should_return();
 
 	void execute();
 	void setup(const Variant &obj, const StringName &p_method, VARIANT_ARG_LIST);
