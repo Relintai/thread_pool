@@ -179,14 +179,14 @@ void ThreadPool::add_job(const Ref<ThreadPoolJob> &job) {
 		}
 	}
 
-	if ((_current_queue_tail + 1) == _queue.size()) {
-		_queue.resize(_queue.size() + _queue_grow_size);
-
-		if (_current_queue_head > 0) {
-			int j = -1;
+	if (_current_queue_tail == _queue.size()) {
+		if (_current_queue_head == 0) {
+			_queue.resize(_queue.size() + _queue_grow_size);
+		} else {
+			int j = 0;
 
 			for (int i = _current_queue_head; i < _current_queue_tail; ++i) {
-				_queue.write[++j] = _queue[i];
+				_queue.write[j++] = _queue[i];
 			}
 
 			_current_queue_head = 0;
@@ -194,9 +194,7 @@ void ThreadPool::add_job(const Ref<ThreadPoolJob> &job) {
 		}
 	}
 
-	++_current_queue_tail;
-
-	_queue.write[_current_queue_tail] = job;
+	_queue.write[_current_queue_tail++] = job;
 }
 
 Ref<ThreadPoolExecuteJob> ThreadPool::create_execute_job_simple(const Variant &obj, const StringName &p_method) {
@@ -320,7 +318,6 @@ void ThreadPool::update() {
 
 		if (!job.is_valid()) {
 			++_current_queue_head;
-
 			continue;
 		}
 
@@ -330,7 +327,7 @@ void ThreadPool::update() {
 		remaining_time -= job->get_current_execution_time();
 
 		if (job->get_complete()) {
-			_queue.write[_current_queue_head].unref();
+			_queue.write[_current_queue_head++].unref();
 		}
 	}
 }
