@@ -32,6 +32,7 @@ SOFTWARE.
 #include "core/os/thread_safe.h"
 #include "core/vector.h"
 #include "core/version.h"
+#include "thread_pool_execute_job.h"
 #include "thread_pool_job.h"
 
 class ThreadPool : public Object {
@@ -76,9 +77,8 @@ public:
 
 	void add_job(const Ref<ThreadPoolJob> &job);
 
-	Ref<ThreadPoolJob> create_job_simple(const Variant &object, const StringName &method);
-
-	Ref<ThreadPoolJob> create_job(const Variant &object, const StringName &method, VARIANT_ARG_LIST);
+	Ref<ThreadPoolExecuteJob> create_execute_job_simple(const Variant &object, const StringName &method);
+	Ref<ThreadPoolExecuteJob> create_execute_job(const Variant &object, const StringName &method, VARIANT_ARG_LIST);
 #if VERSION_MAJOR < 4
 	Variant _create_job_bind(const Variant **p_args, int p_argcount, Variant::CallError &r_error);
 #else

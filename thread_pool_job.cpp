@@ -118,126 +118,9 @@ bool ThreadPoolJob::should_return() {
 }
 
 void ThreadPoolJob::execute() {
-	ERR_FAIL_COND(!_object);
-	ERR_FAIL_COND(!_object->has_method(_method));
+	ERR_FAIL_COND(!has_method("_execute"));
 
-	_current_run_stage = 0;
-	_start_time = OS::get_singleton()->get_system_time_msecs();
-
-	Variant::CallError error;
-
-	_object->call(_method, const_cast<const Variant **>(&_argptr), _argcount, error);
-}
-
-void ThreadPoolJob::setup(const Variant &obj, const StringName &p_method, VARIANT_ARG_DECLARE) {
-	_complete = false;
-	_cancelled = false;
-	_object = obj;
-	_method = p_method;
-
-	_argptr[0] = p_arg1;
-	_argptr[1] = p_arg2;
-	_argptr[2] = p_arg3;
-	_argptr[3] = p_arg4;
-	_argptr[4] = p_arg5;
-
-	for (int i = 4; i >= 0; --i) {
-		if (_argptr[i].get_type() != Variant::NIL) {
-			_argcount = i + 1;
-			break;
-		}
-	}
-
-	if (!_object || !_object->has_method(p_method)) {
-		_complete = true;
-
-		ERR_FAIL_COND(!_object);
-		ERR_FAIL_COND(!_object->has_method(p_method));
-	}
-}
-
-#if VERSION_MAJOR < 4
-Variant ThreadPoolJob::_setup_bind(const Variant **p_args, int p_argcount, Variant::CallError &r_error) {
-#else
-Variant ThreadPoolJob::_setup_bind(const Variant **p_args, int p_argcount, Callable::CallError &r_error) {
-#endif
-	if (p_argcount < 2) {
-#if VERSION_MAJOR < 4
-		r_error.error = Variant::CallError::CALL_ERROR_TOO_FEW_ARGUMENTS;
-#else
-		r_error.error = Callable::CallError::CALL_ERROR_TOO_FEW_ARGUMENTS;
-#endif
-
-		r_error.argument = 1;
-		return Variant();
-	}
-
-	if (p_args[0]->get_type() != Variant::OBJECT) {
-#if VERSION_MAJOR < 4
-		r_error.error = Variant::CallError::CALL_ERROR_INVALID_ARGUMENT;
-#else
-		r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
-#endif
-
-		r_error.argument = 0;
-		r_error.expected = Variant::OBJECT;
-		return Variant();
-	}
-
-	if (p_args[1]->get_type() != Variant::STRING) {
-#if VERSION_MAJOR < 4
-		r_error.error = Variant::CallError::CALL_ERROR_INVALID_ARGUMENT;
-#else
-		r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
-#endif
-
-		r_error.argument = 1;
-		r_error.expected = Variant::STRING;
-		return Variant();
-	}
-
-	_complete = false;
-	_object = *p_args[0];
-
-	StringName sn = *p_args[1];
-	_method = sn;
-
-	if (p_argcount > 2) {
-		_argcount = 1;
-		_argptr[0] = p_args[2];
-	}
-
-	if (p_argcount > 3) {
-		_argcount = 2;
-		_argptr[1] = p_args[3];
-	}
-
-	if (p_argcount > 4) {
-		_argcount = 3;
-		_argptr[2] = p_args[4];
-	}
-
-	if (p_argcount > 5) {
-		_argcount = 4;
-		_argptr[3] = p_args[5];
-	}
-
-	if (p_argcount > 6) {
-		_argcount = 5;
-		_argptr[4] = p_args[6];
-	}
-
-	if (!_object || !_object->has_method(_method)) {
-		_complete = true;
-	}
-
-#if VERSION_MAJOR < 4
-	r_error.error = Variant::CallError::CALL_OK;
-#else
-	r_error.error = Callable::CallError::CALL_OK;
-#endif
-
-	return Variant();
+	call("_execute");
 }
 
 ThreadPoolJob::ThreadPoolJob() {
@@ -287,12 +170,6 @@ void ThreadPoolJob::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("should_do", "just_check"), &ThreadPoolJob::should_do, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("should_return"), &ThreadPoolJob::should_return);
 
+	BIND_VMETHOD(MethodInfo("_execute"));
 	ClassDB::bind_method(D_METHOD("execute"), &ThreadPoolJob::execute);
-
-	MethodInfo mi;
-	mi.arguments.push_back(PropertyInfo(Variant::OBJECT, "obj"));
-	mi.arguments.push_back(PropertyInfo(Variant::STRING, "method"));
-
-	mi.name = "setup";
-	ClassDB::bind_vararg_method(METHOD_FLAGS_DEFAULT, "setup", &ThreadPoolJob::_setup_bind, mi);
 }

@@ -10,6 +10,7 @@ sources = [
 
     "thread_pool.cpp",
     "thread_pool_job.cpp",
+    "thread_pool_execute_job.cpp",
 ]
 
 if ARGUMENTS.get('custom_modules_shared', 'no') == 'yes':

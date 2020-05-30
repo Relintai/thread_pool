@@ -20,68 +20,36 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#ifndef THREAD_POOL_JOB_H
-#define THREAD_POOL_JOB_H
+#ifndef THREAD_POOL_EXECUTE_JOB_H
+#define THREAD_POOL_EXECUTE_JOB_H
 
-#include "core/reference.h"
+#include "thread_pool_job.h"
 
-#include "core/version.h"
-
-class ThreadPoolJob : public Reference {
-	GDCLASS(ThreadPoolJob, Reference);
+class ThreadPoolExecuteJob : public ThreadPoolJob {
+	GDCLASS(ThreadPoolExecuteJob, ThreadPoolJob);
 
 public:
-	bool get_complete() const;
-	void set_complete(const bool value);
-
-	bool get_cancelled() const;
-	void set_cancelled(const bool value);
-
-	bool get_limit_execution_time() const;
-	void set_limit_execution_time(const bool value);
-
-	float get_max_allocated_time() const;
-	void set_max_allocated_time(const float value);
-
-	int get_start_time() const;
-	void set_start_time(const int value);
-
-	int get_current_run_stage() const;
-	void set_current_run_stage(const int value);
-
-	int get_stage() const;
-	void set_stage(const int value);
-
 	Variant get_object() const;
 	void set_object(const Variant &value);
 
 	StringName get_method() const;
 	void set_method(const StringName &value);
 
-	float get_current_execution_time();
+	void _execute();
+	void setup(const Variant &obj, const StringName &p_method, VARIANT_ARG_LIST);
+#if VERSION_MAJOR < 4
+	Variant _setup_bind(const Variant **p_args, int p_argcount, Variant::CallError &r_error);
+#else
+	Variant _setup_bind(const Variant **p_args, int p_argcount, Callable::CallError &r_error);
+#endif
 
-	bool should_do(const bool just_check = false);
-	bool should_return();
-
-	void execute();
-
-	ThreadPoolJob();
-	~ThreadPoolJob();
+	ThreadPoolExecuteJob();
+	~ThreadPoolExecuteJob();
 
 protected:
 	static void _bind_methods();
 
 private:
-	bool _complete;
-	bool _cancelled;
-
-	bool _limit_execution_time;
-	float _max_allocated_time;
-	uint64_t _start_time;
-
-	int _current_run_stage;
-	int _stage;
-
 	Object *_object;
 	StringName _method;
 	int _argcount;

@@ -33,6 +33,7 @@ def get_doc_classes():
     return [
         "ThreadPool",
         "ThreadPoolJob",
+        "ThreadPoolExecuteJob",
     ]
 
 def get_doc_path():

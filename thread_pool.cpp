@@ -199,8 +199,8 @@ void ThreadPool::add_job(const Ref<ThreadPoolJob> &job) {
 	_queue.write[_current_queue_tail] = job;
 }
 
-Ref<ThreadPoolJob> ThreadPool::create_job_simple(const Variant &obj, const StringName &p_method) {
-	Ref<ThreadPoolJob> job;
+Ref<ThreadPoolExecuteJob> ThreadPool::create_execute_job_simple(const Variant &obj, const StringName &p_method) {
+	Ref<ThreadPoolExecuteJob> job;
 	job.instance();
 
 	job->setup(obj, p_method);
@@ -212,8 +212,8 @@ Ref<ThreadPoolJob> ThreadPool::create_job_simple(const Variant &obj, const Strin
 	return job;
 }
 
-Ref<ThreadPoolJob> ThreadPool::create_job(const Variant &obj, const StringName &p_method, VARIANT_ARG_DECLARE) {
-	Ref<ThreadPoolJob> job;
+Ref<ThreadPoolExecuteJob> ThreadPool::create_execute_job(const Variant &obj, const StringName &p_method, VARIANT_ARG_DECLARE) {
+	Ref<ThreadPoolExecuteJob> job;
 	job.instance();
 
 	job->setup(obj, p_method, p_arg1, p_arg2, p_arg3, p_arg4, p_arg5);
@@ -265,7 +265,7 @@ Variant ThreadPool::_create_job_bind(const Variant **p_args, int p_argcount, Cal
 		return Variant();
 	}
 
-	Ref<ThreadPoolJob> job;
+	Ref<ThreadPoolExecuteJob> job;
 	job.instance();
 
 	job->_setup_bind(p_args, p_argcount, r_error);
@@ -415,14 +415,14 @@ void ThreadPool::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_max_time_per_frame", "value"), &ThreadPool::set_max_time_per_frame);
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "max_time_per_frame"), "set_max_time_per_frame", "get_max_time_per_frame");
 
-	ClassDB::bind_method(D_METHOD("create_job_simple", "object", "method"), &ThreadPool::create_job_simple);
+	ClassDB::bind_method(D_METHOD("create_execute_job_simple", "object", "method"), &ThreadPool::create_execute_job_simple);
 
 	MethodInfo mi;
 	mi.arguments.push_back(PropertyInfo(Variant::OBJECT, "obj"));
 	mi.arguments.push_back(PropertyInfo(Variant::STRING, "method"));
 
 	mi.name = "create_job";
-	ClassDB::bind_vararg_method(METHOD_FLAGS_DEFAULT, "create_job", &ThreadPool::_create_job_bind, mi);
+	ClassDB::bind_vararg_method(METHOD_FLAGS_DEFAULT, "create_execute_job", &ThreadPool::_create_job_bind, mi);
 
 	ClassDB::bind_method(D_METHOD("get_running_job", "object", "method"), &ThreadPool::get_running_job);
 	ClassDB::bind_method(D_METHOD("get_queued_job", "object", "method"), &ThreadPool::get_queued_job);
