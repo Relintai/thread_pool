@@ -34,6 +34,8 @@ SOFTWARE.
 #if VERSION_MAJOR >= 4
 #define CONNECT(sig, obj, target_method_class, method) connect(sig, callable_mp(obj, &target_method_class::method))
 #define DISCONNECT(sig, obj, target_method_class, method) disconnect(sig, callable_mp(obj, &target_method_class::method))
+
+#define REAL FLOAT
 #else
 #define CONNECT(sig, obj, target_method_class, method) connect(sig, obj, #method)
 #define DISCONNECT(sig, obj, target_method_class, method) disconnect(sig, obj, #method)
@@ -164,7 +166,6 @@ Ref<ThreadPoolJob> ThreadPool::get_queued_job(const Variant &object, const Strin
 }
 
 void ThreadPool::add_job(const Ref<ThreadPoolJob> &job) {
-
 	_THREAD_SAFE_METHOD_
 
 	if (_use_threads) {
@@ -276,7 +277,6 @@ Variant ThreadPool::_create_job_bind(const Variant **p_args, int p_argcount, Cal
 }
 
 void ThreadPool::_thread_finished(ThreadPoolContext *context) {
-
 	_THREAD_SAFE_METHOD_
 
 	if (_current_queue_head != _current_queue_tail) {
@@ -361,7 +361,11 @@ ThreadPool::ThreadPool() {
 			ThreadPoolContext *context = memnew(ThreadPoolContext);
 
 			context->running = true;
+#if VERSION_MAJOR < 4
 			context->semaphore = Semaphore::create();
+#else
+			context->semaphore = memnew(Semaphore);
+#endif
 			context->thread = Thread::create(ThreadPool::_worker_thread_func, context);
 
 			_threads.write[i] = context;

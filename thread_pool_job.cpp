@@ -25,6 +25,8 @@ SOFTWARE.
 #include "core/os/os.h"
 #include "core/variant.h"
 
+#include "core/version.h"
+
 bool ThreadPoolJob::get_complete() const {
 	return _complete;
 }
@@ -89,7 +91,11 @@ void ThreadPoolJob::set_method(const StringName &value) {
 }
 
 float ThreadPoolJob::get_current_execution_time() {
+#if VERSION_MAJOR < 4
 	return (OS::get_singleton()->get_system_time_msecs() - _start_time) / 1000.0;
+#else
+	return (OS::get_singleton()->get_ticks_msec() - _start_time) / 1000.0;
+#endif
 }
 
 bool ThreadPoolJob::should_do(const bool just_check) {
