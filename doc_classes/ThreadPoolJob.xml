@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="ThreadPoolJob" inherits="Reference" version="3.2">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="_execute" qualifiers="virtual">
+			<return type="void">
+			</return>
+			<description>
+			</description>
+		</method>
+		<method name="execute">
+			<return type="void">
+			</return>
+			<description>
+			</description>
+		</method>
+		<method name="get_current_execution_time">
+			<return type="float">
+			</return>
+			<description>
+			</description>
+		</method>
+		<method name="should_do">
+			<return type="bool">
+			</return>
+			<argument index="0" name="just_check" type="bool" default="false">
+			</argument>
+			<description>
+			</description>
+		</method>
+		<method name="should_return">
+			<return type="bool">
+			</return>
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="complete" type="bool" setter="set_complete" getter="get_complete" default="true">
+		</member>
+		<member name="current_run_stage" type="int" setter="set_current_run_stage" getter="get_current_run_stage" default="0">
+		</member>
+		<member name="limit_execution_time" type="bool" setter="set_limit_execution_time" getter="get_limit_execution_time" default="false">
+		</member>
+		<member name="stage" type="int" setter="set_stage" getter="get_stage" default="0">
+		</member>
+		<member name="start_time" type="int" setter="set_start_time" getter="get_start_time" default="0">
+		</member>
+	</members>
+	<constants>
+	</constants>
+</class>

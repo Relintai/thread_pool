@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="ThreadPool" inherits="Object" version="3.2">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="add_job">
+			<return type="void">
+			</return>
+			<argument index="0" name="job" type="ThreadPoolJob">
+			</argument>
+			<description>
+			</description>
+		</method>
+		<method name="cancel_task">
+			<return type="void">
+			</return>
+			<argument index="0" name="job" type="ThreadPoolJob">
+			</argument>
+			<description>
+			</description>
+		</method>
+		<method name="cancel_task_wait">
+			<return type="void">
+			</return>
+			<argument index="0" name="job" type="ThreadPoolJob">
+			</argument>
+			<description>
+			</description>
+		</method>
+		<method name="create_execute_job" qualifiers="vararg">
+			<return type="Variant">
+			</return>
+			<argument index="0" name="obj" type="Object">
+			</argument>
+			<argument index="1" name="method" type="String">
+			</argument>
+			<description>
+			</description>
+		</method>
+		<method name="create_execute_job_simple">
+			<return type="ThreadPoolExecuteJob">
+			</return>
+			<argument index="0" name="object" type="Variant">
+			</argument>
+			<argument index="1" name="method" type="String">
+			</argument>
+			<description>
+			</description>
+		</method>
+		<method name="get_queued_job">
+			<return type="ThreadPoolJob">
+			</return>
+			<argument index="0" name="object" type="Variant">
+			</argument>
+			<argument index="1" name="method" type="String">
+			</argument>
+			<description>
+			</description>
+		</method>
+		<method name="get_running_job">
+			<return type="ThreadPoolJob">
+			</return>
+			<argument index="0" name="object" type="Variant">
+			</argument>
+			<argument index="1" name="method" type="String">
+			</argument>
+			<description>
+			</description>
+		</method>
+		<method name="register_update">
+			<return type="void">
+			</return>
+			<description>
+			</description>
+		</method>
+		<method name="update">
+			<return type="void">
+			</return>
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="max_time_per_frame" type="float" setter="set_max_time_per_frame" getter="get_max_time_per_frame" default="0.00416667">
+		</member>
+		<member name="max_work_per_frame_percent" type="float" setter="set_max_work_per_frame_percent" getter="get_max_work_per_frame_percent" default="25.0">
+		</member>
+		<member name="thread_count" type="int" setter="set_thread_count" getter="get_thread_count" default="4">
+		</member>
+		<member name="use_threads" type="bool" setter="set_use_threads" getter="get_use_threads" default="true">
+		</member>
+	</members>
+	<constants>
+	</constants>
+</class>
