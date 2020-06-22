@@ -178,4 +178,6 @@ void ThreadPoolJob::_bind_methods() {
 
 	BIND_VMETHOD(MethodInfo("_execute"));
 	ClassDB::bind_method(D_METHOD("execute"), &ThreadPoolJob::execute);
+
+	ADD_SIGNAL(MethodInfo("completed"));
 }
