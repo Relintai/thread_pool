@@ -67,7 +67,7 @@ func _execute():
             if should_return():
                 return
 
-        #while finished, just finalize step
+        #The heavy calculation finished, increment counters
         should_do()
     
     if should_return():
