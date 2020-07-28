@@ -6,7 +6,7 @@ It can also work if threads are not available (like on the javascript backend), 
 main thread. Jobs themselves can also distribute their work onto multiple frames, and you can set how much time 
 is allocated per frame.
 
-You can access it's setting from the `Project->Project Settings...` menu, ont the `ThreadPool` category.
+You can access it's setting from the `Project->Project Settings...` menu, in the `ThreadPool` category.
 
 # Pre-built binaries
 
