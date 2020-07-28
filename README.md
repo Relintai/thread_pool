@@ -13,26 +13,25 @@ You can access it's setting from the `Project->Project Settings...` menu, ont th
 You can grab a pre-built editor binary from the [Broken Seals](https://github.com/Relintai/broken_seals/releases) 
 repo, should you want to. It contains all my modules.
 
-# ThreadPolJob
+# ThreadPoolJob
 
 Contains a job that can run on different threads.
 
 A job is only considered finished, if you set the 'complete' property to 'true'. If multiple threads are available, 
 the system will not check for this though, because there is no need.
 
-If you want to support envioronment that doesn't have threading, you can use 
+If you want to support envioronments that doesn't have threading, you can use:
 
 ```
 bool should_do(const bool just_check = false);
 bool should_return();
 ```
-helpers.
 
 For example:
 
 ```
 func _execute():
-    # On the first run this will always return, true, on the subsequest runs it will return false
+    # On the first run this will return true, on subsequest runs it will return false
     if should_do():
         thing1()
 
@@ -43,12 +42,48 @@ func _execute():
     if should_do():
         thing2()
 
+    if should_return():
+        return
+
+    thing3()
+
     complete = true
 
 ```
 
 `should_do`'s optional parameter will let you just query the system, whether you finished a step, without
-incrementing internal couters.
+incrementing internal couters. This is useful for example to distribute algorithms onto multiple frames.
+
+For example:
+
+```
+func _execute():
+    if should_do(true):
+        while current <= elements.size():
+            #do heavy calculations
+
+            current += 1
+
+            if should_return():
+                return
+
+        #while finished, just finalize step
+        should_do()
+    
+    if should_return():
+        return
+
+    if should_do():
+        thing2()
+
+    if should_return():
+        return
+
+    thing3()
+
+    complete = true
+
+```
 
 This class will need litle tweaks, hopefully I can get to is soon.
 
