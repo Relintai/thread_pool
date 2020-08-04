@@ -45,15 +45,9 @@ void ThreadPoolExecuteJob::_execute() {
 	ERR_FAIL_COND(!_object);
 	ERR_FAIL_COND(!_object->has_method(_method));
 
-	set_current_run_stage(0);
-
 #if VERSION_MAJOR < 4
-	set_start_time(OS::get_singleton()->get_system_time_msecs());
-
 	Variant::CallError error;
 #else
-	set_start_time(OS::get_singleton()->get_ticks_msec());
-
 	Callable::CallError error;
 #endif
 
