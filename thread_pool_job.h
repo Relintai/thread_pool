@@ -52,6 +52,8 @@ public:
 	int get_stage() const;
 	void set_stage(const int value);
 
+	void reset_stages();
+
 	Variant get_object() const;
 	void set_object(const Variant &value);
 

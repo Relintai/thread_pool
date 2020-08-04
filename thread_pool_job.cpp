@@ -69,6 +69,11 @@ void ThreadPoolJob::set_stage(const int value) {
 	_stage = value;
 }
 
+void ThreadPoolJob::reset_stages() {
+	_current_run_stage = 0;
+	_stage = 0;
+}
+
 Variant ThreadPoolJob::get_object() const {
 	return _object;
 }
@@ -164,6 +169,8 @@ void ThreadPoolJob::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_stage"), &ThreadPoolJob::get_stage);
 	ClassDB::bind_method(D_METHOD("set_stage", "value"), &ThreadPoolJob::set_stage);
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "stage"), "set_stage", "get_stage");
+
+	ClassDB::bind_method(D_METHOD("reset_stages"), &ThreadPoolJob::reset_stages);
 
 	ClassDB::bind_method(D_METHOD("get_current_execution_time"), &ThreadPoolJob::get_current_execution_time);
 
