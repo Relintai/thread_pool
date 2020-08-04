@@ -63,6 +63,9 @@ public:
 	int get_thread_count() const;
 	void set_thread_count(const bool value);
 
+	int get_thread_fallback_count() const;
+	void set_thread_fallback_count(const bool value);
+
 	float get_max_work_per_frame_percent() const;
 	void set_max_work_per_frame_percent(const bool value);
 
@@ -102,6 +105,7 @@ private:
 
 	bool _use_threads;
 	int _thread_count;
+	int _thread_fallback_count;
 	float _max_work_per_frame_percent;
 	float _max_time_per_frame;
 

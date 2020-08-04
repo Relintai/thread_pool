@@ -61,6 +61,13 @@ void ThreadPool::set_thread_count(const bool value) {
 	_thread_count = value;
 }
 
+int ThreadPool::get_thread_fallback_count() const {
+	return _thread_fallback_count;
+}
+void ThreadPool::set_thread_fallback_count(const bool value) {
+	_thread_fallback_count = value;
+}
+
 float ThreadPool::get_max_work_per_frame_percent() const {
 	return _max_work_per_frame_percent;
 }
@@ -339,7 +346,15 @@ ThreadPool::ThreadPool() {
 	_current_queue_tail = 0;
 
 	_use_threads = GLOBAL_DEF("thread_pool/use_threads", true);
-	_thread_count = GLOBAL_DEF("thread_pool/thread_count", 4);
+	_thread_count = GLOBAL_DEF("thread_pool/thread_count", -1);
+	_thread_fallback_count = GLOBAL_DEF("thread_pool/thread_fallback_count", 4);
+
+	if (_thread_fallback_count <= 0) {
+		print_error("ThreadPool: thread_fallback_count is invalid! Check ProjectSettings/ThreadPool/thread_fallback_count! Needs to be > 0! Set to 1!");
+
+		_thread_fallback_count = 1;
+	}
+
 	//Todo Add help text, as this will only come into play if threading is disabled, or not available
 	_max_work_per_frame_percent = GLOBAL_DEF("thread_pool/max_work_per_frame_percent", 25);
 
@@ -355,6 +370,15 @@ ThreadPool::ThreadPool() {
 	}
 
 	if (_use_threads) {
+		if (_thread_count <= 0) {
+			_thread_count = OS::get_singleton()->get_processor_count() + _thread_count;
+		}
+
+		//a.k.a OS::get_singleton()->get_processor_count() is not implemented, or returns something unexpected, or too high negative number
+		if (_thread_count <= 0) {
+			_thread_count = _thread_fallback_count;
+		}
+
 		_threads.resize(_thread_count);
 
 		for (int i = 0; i < _threads.size(); ++i) {
@@ -407,6 +431,10 @@ void ThreadPool::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_thread_count"), &ThreadPool::get_thread_count);
 	ClassDB::bind_method(D_METHOD("set_thread_count", "value"), &ThreadPool::set_thread_count);
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "thread_count"), "set_thread_count", "get_thread_count");
+
+	ClassDB::bind_method(D_METHOD("get_thread_fallback_count"), &ThreadPool::get_thread_fallback_count);
+	ClassDB::bind_method(D_METHOD("set_thread_fallback_count", "value"), &ThreadPool::set_thread_fallback_count);
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "thread_fallback_count"), "set_thread_fallback_count", "get_thread_fallback_count");
 
 	ClassDB::bind_method(D_METHOD("get_max_work_per_frame_percent"), &ThreadPool::get_max_work_per_frame_percent);
 	ClassDB::bind_method(D_METHOD("set_max_work_per_frame_percent", "value"), &ThreadPool::set_max_work_per_frame_percent);
