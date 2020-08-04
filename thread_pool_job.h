@@ -32,7 +32,7 @@ class ThreadPoolJob : public Reference {
 
 public:
 	//is_running, is queued?
-	//job status -> none, running, queued?
+	//job status -> none, running, queued, done?
 
 	bool get_complete() const;
 	void set_complete(const bool value);
