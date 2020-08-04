@@ -109,7 +109,7 @@ bool ThreadPoolJob::should_do(const bool just_check) {
 	++_current_run_stage;
 	++_stage;
 
-	return false;
+	return true;
 }
 bool ThreadPoolJob::should_return() {
 	if (_cancelled)
