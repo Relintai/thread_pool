@@ -31,6 +31,8 @@ class ThreadPoolJob : public Reference {
 	GDCLASS(ThreadPoolJob, Reference);
 
 public:
+	//is_running, is queued?
+
 	bool get_complete() const;
 	void set_complete(const bool value);
 

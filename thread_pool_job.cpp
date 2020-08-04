@@ -126,6 +126,12 @@ bool ThreadPoolJob::should_return() {
 void ThreadPoolJob::execute() {
 	ERR_FAIL_COND(!has_method("_execute"));
 
+#if VERSION_MAJOR < 4
+	_start_time = OS::get_singleton()->get_system_time_msecs();
+#else
+	_start_time = OS::get_singleton()->get_ticks_msec();
+#endif
+
 	call("_execute");
 }
 
