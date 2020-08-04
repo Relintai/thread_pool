@@ -41,13 +41,6 @@ void ThreadPoolJob::set_cancelled(const bool value) {
 	_cancelled = value;
 }
 
-bool ThreadPoolJob::get_limit_execution_time() const {
-	return _limit_execution_time;
-}
-void ThreadPoolJob::set_limit_execution_time(const bool value) {
-	_limit_execution_time = value;
-}
-
 float ThreadPoolJob::get_max_allocated_time() const {
 	return _max_allocated_time;
 }
@@ -120,7 +113,7 @@ bool ThreadPoolJob::should_return() {
 	if (!_limit_execution_time)
 		return false;
 
-	return get_current_execution_time() >= _limit_execution_time;
+	return get_current_execution_time() >= _max_allocated_time;
 }
 
 void ThreadPoolJob::execute() {
