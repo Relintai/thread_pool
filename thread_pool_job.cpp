@@ -110,7 +110,7 @@ bool ThreadPoolJob::should_return() {
 	if (_cancelled)
 		return true;
 
-	if (!_limit_execution_time)
+	if (_max_allocated_time < 0.00001)
 		return false;
 
 	return get_current_execution_time() >= _max_allocated_time;
@@ -132,7 +132,6 @@ ThreadPoolJob::ThreadPoolJob() {
 	_complete = true;
 	_cancelled = false;
 
-	_limit_execution_time = false;
 	_max_allocated_time = 0;
 	_start_time = 0;
 
@@ -153,10 +152,6 @@ void ThreadPoolJob::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_complete"), &ThreadPoolJob::get_complete);
 	ClassDB::bind_method(D_METHOD("set_complete", "value"), &ThreadPoolJob::set_complete);
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "complete"), "set_complete", "get_complete");
-
-	ClassDB::bind_method(D_METHOD("get_limit_execution_time"), &ThreadPoolJob::get_limit_execution_time);
-	ClassDB::bind_method(D_METHOD("set_limit_execution_time", "value"), &ThreadPoolJob::set_limit_execution_time);
-	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "limit_execution_time"), "set_limit_execution_time", "get_limit_execution_time");
 
 	ClassDB::bind_method(D_METHOD("get_start_time"), &ThreadPoolJob::get_start_time);
 	ClassDB::bind_method(D_METHOD("set_start_time", "value"), &ThreadPoolJob::set_start_time);
