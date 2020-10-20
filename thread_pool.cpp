@@ -173,7 +173,7 @@ Ref<ThreadPoolJob> ThreadPool::get_queued_job(const Variant &object, const Strin
 }
 
 void ThreadPool::add_job(const Ref<ThreadPoolJob> &job) {
-	_THREAD_SAFE_METHOD_
+	_THREAD_SAFE_LOCK_
 
 	if (_use_threads) {
 		for (int i = 0; i < _threads.size(); ++i) {
@@ -182,6 +182,7 @@ void ThreadPool::add_job(const Ref<ThreadPoolJob> &job) {
 			if (!context->job.is_valid()) {
 				context->job = job;
 				context->semaphore->post();
+				_THREAD_SAFE_UNLOCK_
 				return;
 			}
 		}
@@ -203,6 +204,8 @@ void ThreadPool::add_job(const Ref<ThreadPoolJob> &job) {
 	}
 
 	_queue.write[_current_queue_tail++] = job;
+
+	_THREAD_SAFE_UNLOCK_
 }
 
 Ref<ThreadPoolExecuteJob> ThreadPool::create_execute_job_simple(const Variant &obj, const StringName &p_method) {
@@ -284,7 +287,9 @@ Variant ThreadPool::_create_job_bind(const Variant **p_args, int p_argcount, Cal
 }
 
 void ThreadPool::_thread_finished(ThreadPoolContext *context) {
-	_THREAD_SAFE_METHOD_
+	_THREAD_SAFE_LOCK_
+
+	context->job.unref();
 
 	if (_current_queue_head != _current_queue_tail) {
 		context->job = _queue.get(_current_queue_head);
@@ -293,6 +298,8 @@ void ThreadPool::_thread_finished(ThreadPoolContext *context) {
 
 		++_current_queue_head;
 	}
+
+	_THREAD_SAFE_UNLOCK_
 }
 
 void ThreadPool::_worker_thread_func(void *user_data) {
@@ -305,7 +312,7 @@ void ThreadPool::_worker_thread_func(void *user_data) {
 			continue;
 
 		context->job->execute();
-		context->job.unref();
+
 		ThreadPool::get_singleton()->_thread_finished(context);
 	}
 }
