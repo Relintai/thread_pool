@@ -23,9 +23,13 @@ SOFTWARE.
 #ifndef THREAD_POOL_JOB_H
 #define THREAD_POOL_JOB_H
 
-#include "core/reference.h"
-
 #include "core/version.h"
+
+#if VERSION_MAJOR > 3
+#include "core/object/reference.h"
+#else
+#include "core/reference.h"
+#endif
 
 class ThreadPoolJob : public Reference {
 	GDCLASS(ThreadPoolJob, Reference);

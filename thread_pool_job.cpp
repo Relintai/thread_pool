@@ -22,10 +22,15 @@ SOFTWARE.
 
 #include "thread_pool_job.h"
 
-#include "core/os/os.h"
-#include "core/variant.h"
-
 #include "core/version.h"
+
+#if VERSION_MAJOR > 3
+#include "core/variant/variant.h"
+#else
+#include "core/variant.h"
+#endif
+
+#include "core/os/os.h"
 
 bool ThreadPoolJob::get_complete() const {
 	return _complete;

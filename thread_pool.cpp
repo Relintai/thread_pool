@@ -24,9 +24,17 @@ SOFTWARE.
 
 */
 
+#include "core/version.h"
+
+#if VERSION_MAJOR > 3
+#include "core/config/engine.h"
+#include "core/config/project_settings.h"
+#else
 #include "core/engine.h"
-#include "core/os/os.h"
 #include "core/project_settings.h"
+#endif
+
+#include "core/os/os.h"
 #include "scene/main/scene_tree.h"
 
 #include "core/version.h"
@@ -397,7 +405,13 @@ ThreadPool::ThreadPool() {
 #else
 			context->semaphore = memnew(Semaphore);
 #endif
+
+#if VERSION_MAJOR < 4
 			context->thread = Thread::create(ThreadPool::_worker_thread_func, context);
+#else
+			context->thread = memnew(Thread());
+			context->thread->start(ThreadPool::_worker_thread_func, context);
+#endif
 
 			_threads.write[i] = context;
 		}
@@ -416,7 +430,12 @@ ThreadPool::~ThreadPool() {
 
 	for (int i = 0; i < _threads.size(); ++i) {
 		ThreadPoolContext *context = _threads.get(i);
+
+#if VERSION_MAJOR < 4
 		Thread::wait_to_finish(context->thread);
+#else
+		context->thread->wait_to_finish();
+#endif
 
 		memdelete(context->thread);
 		memdelete(context->semaphore);
