@@ -79,11 +79,11 @@ public:
 	float get_max_time_per_frame() const;
 	void set_max_time_per_frame(const bool value);
 
-	void cancel_job_wait(Ref<ThreadPoolJob> job);
-	void cancel_job(Ref<ThreadPoolJob> job);
-
 	bool has_job(const Ref<ThreadPoolJob> &job);
 	void add_job(const Ref<ThreadPoolJob> &job);
+
+	void cancel_job(Ref<ThreadPoolJob> job);
+	void cancel_job_wait(Ref<ThreadPoolJob> job);
 
 	void _thread_finished(ThreadPoolContext *context);
 	static void _worker_thread_func(void *user_data);
