@@ -165,7 +165,7 @@ bool ThreadPool::has_job(const Ref<ThreadPoolJob> &job) {
 	}
 
 	for (int i = _current_queue_head; i < _current_queue_tail; ++i) {
-		if (_queue.write[i] == job) {
+		if (_queue[i] == job) {
 
 			_THREAD_SAFE_UNLOCK_
 
