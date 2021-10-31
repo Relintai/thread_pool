@@ -180,6 +180,36 @@ Ref<ThreadPoolJob> ThreadPool::get_queued_job(const Variant &object, const Strin
 	return Ref<ThreadPoolJob>();
 }
 
+bool ThreadPool::has_job(const Ref<ThreadPoolJob> &job) {
+	_THREAD_SAFE_LOCK_
+
+	if (_use_threads) {
+		for (int i = 0; i < _threads.size(); ++i) {
+			ThreadPoolContext *context = _threads.get(i);
+
+			if (context->job == job) {
+
+				_THREAD_SAFE_UNLOCK_
+
+				return true;
+			}
+		}
+	}
+
+	for (int i = _current_queue_head; i < _current_queue_tail; ++i) {
+		if (_queue.write[i] == job) {
+
+			_THREAD_SAFE_UNLOCK_
+
+			return true;
+		}
+	}
+
+	_THREAD_SAFE_UNLOCK_
+
+	return false;
+}
+
 void ThreadPool::add_job(const Ref<ThreadPoolJob> &job) {
 	_THREAD_SAFE_LOCK_
 
@@ -470,6 +500,7 @@ void ThreadPool::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_running_job", "object", "method"), &ThreadPool::get_running_job);
 	ClassDB::bind_method(D_METHOD("get_queued_job", "object", "method"), &ThreadPool::get_queued_job);
 
+	ClassDB::bind_method(D_METHOD("has_job", "job"), &ThreadPool::has_job);
 	ClassDB::bind_method(D_METHOD("add_job", "job"), &ThreadPool::add_job);
 
 	ClassDB::bind_method(D_METHOD("register_update"), &ThreadPool::register_update);

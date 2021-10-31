@@ -85,6 +85,7 @@ public:
 	Ref<ThreadPoolJob> get_running_job(const Variant &object, const StringName &method);
 	Ref<ThreadPoolJob> get_queued_job(const Variant &object, const StringName &method);
 
+	bool has_job(const Ref<ThreadPoolJob> &job);
 	void add_job(const Ref<ThreadPoolJob> &job);
 
 	Ref<ThreadPoolExecuteJob> create_execute_job_simple(const Variant &object, const StringName &method);
