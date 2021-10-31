@@ -114,7 +114,7 @@ void ThreadPool::cancel_job_wait(Ref<ThreadPoolJob> job) {
 			job->set_cancelled(true);
 
 			while (_threads[i]->job == job) {
-				OS::get_singleton()->delay_usec(1000);
+				OS::get_singleton()->delay_usec(100);
 			}
 
 			return;
