@@ -90,7 +90,7 @@ void ThreadPool::set_max_time_per_frame(const bool value) {
 	_max_time_per_frame = value;
 }
 
-void ThreadPool::cancel_task_wait(Ref<ThreadPoolJob> job) {
+void ThreadPool::cancel_job_wait(Ref<ThreadPoolJob> job) {
 	ERR_FAIL_COND(!job.is_valid());
 
 	_THREAD_SAFE_LOCK_
@@ -121,7 +121,7 @@ void ThreadPool::cancel_task_wait(Ref<ThreadPoolJob> job) {
 		}
 	}
 }
-void ThreadPool::cancel_task(Ref<ThreadPoolJob> job) {
+void ThreadPool::cancel_job(Ref<ThreadPoolJob> job) {
 	ERR_FAIL_COND(!job.is_valid());
 
 	_THREAD_SAFE_LOCK_
@@ -475,6 +475,6 @@ void ThreadPool::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("register_update"), &ThreadPool::register_update);
 	ClassDB::bind_method(D_METHOD("update"), &ThreadPool::update);
 
-	ClassDB::bind_method(D_METHOD("cancel_task_wait", "job"), &ThreadPool::cancel_task_wait);
-	ClassDB::bind_method(D_METHOD("cancel_task", "job"), &ThreadPool::cancel_task);
+	ClassDB::bind_method(D_METHOD("cancel_job_wait", "job"), &ThreadPool::cancel_job_wait);
+	ClassDB::bind_method(D_METHOD("cancel_job", "job"), &ThreadPool::cancel_job);
 }
