@@ -148,38 +148,6 @@ void ThreadPool::cancel_job(Ref<ThreadPoolJob> job) {
 	}
 }
 
-Ref<ThreadPoolJob> ThreadPool::get_running_job(const Variant &object, const StringName &method) {
-	if (!_use_threads)
-		return _queue[_current_queue_head];
-
-	for (int i = 0; i < _threads.size(); ++i) {
-		Ref<ThreadPoolJob> j = _threads[i]->job;
-
-		if (!j.is_valid())
-			continue;
-
-		if (j->get_object() == object && j->get_method() == method) {
-			return j;
-		}
-	}
-
-	ERR_FAIL_V(Ref<ThreadPoolJob>());
-}
-
-Ref<ThreadPoolJob> ThreadPool::get_queued_job(const Variant &object, const StringName &method) {
-	for (int i = 0; i < _queue.size(); ++i) {
-		Ref<ThreadPoolJob> j = _queue[i];
-
-		ERR_CONTINUE(!j.is_valid());
-
-		if (j->get_object() == object && j->get_method() == method) {
-			return j;
-		}
-	}
-
-	return Ref<ThreadPoolJob>();
-}
-
 bool ThreadPool::has_job(const Ref<ThreadPoolJob> &job) {
 	_THREAD_SAFE_LOCK_
 
@@ -244,84 +212,6 @@ void ThreadPool::add_job(const Ref<ThreadPoolJob> &job) {
 	_queue.write[_current_queue_tail++] = job;
 
 	_THREAD_SAFE_UNLOCK_
-}
-
-Ref<ThreadPoolExecuteJob> ThreadPool::create_execute_job_simple(const Variant &obj, const StringName &p_method) {
-	Ref<ThreadPoolExecuteJob> job;
-	job.instance();
-
-	job->setup(obj, p_method);
-
-	ERR_FAIL_COND_V(job->get_complete(), job);
-
-	add_job(job);
-
-	return job;
-}
-
-Ref<ThreadPoolExecuteJob> ThreadPool::create_execute_job(const Variant &obj, const StringName &p_method, VARIANT_ARG_DECLARE) {
-	Ref<ThreadPoolExecuteJob> job;
-	job.instance();
-
-	job->setup(obj, p_method, p_arg1, p_arg2, p_arg3, p_arg4, p_arg5);
-
-	ERR_FAIL_COND_V(job->get_complete(), job);
-
-	add_job(job);
-
-	return job;
-}
-
-#if VERSION_MAJOR < 4
-Variant ThreadPool::_create_job_bind(const Variant **p_args, int p_argcount, Variant::CallError &r_error) {
-#else
-Variant ThreadPool::_create_job_bind(const Variant **p_args, int p_argcount, Callable::CallError &r_error) {
-#endif
-	if (p_argcount < 2) {
-#if VERSION_MAJOR < 4
-		r_error.error = Variant::CallError::CALL_ERROR_TOO_FEW_ARGUMENTS;
-#else
-		r_error.error = Callable::CallError::CALL_ERROR_TOO_FEW_ARGUMENTS;
-#endif
-
-		r_error.argument = 1;
-		return Variant();
-	}
-
-	if (p_args[0]->get_type() != Variant::OBJECT) {
-#if VERSION_MAJOR < 4
-		r_error.error = Variant::CallError::CALL_ERROR_INVALID_ARGUMENT;
-#else
-		r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
-#endif
-
-		r_error.argument = 0;
-		r_error.expected = Variant::OBJECT;
-		return Variant();
-	}
-
-	if (p_args[1]->get_type() != Variant::STRING) {
-#if VERSION_MAJOR < 4
-		r_error.error = Variant::CallError::CALL_ERROR_INVALID_ARGUMENT;
-#else
-		r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
-#endif
-
-		r_error.argument = 1;
-		r_error.expected = Variant::STRING;
-		return Variant();
-	}
-
-	Ref<ThreadPoolExecuteJob> job;
-	job.instance();
-
-	job->_setup_bind(p_args, p_argcount, r_error);
-
-	ERR_FAIL_COND_V(job->get_complete(), job);
-
-	add_job(job);
-
-	return job;
 }
 
 void ThreadPool::_thread_finished(ThreadPoolContext *context) {
@@ -487,18 +377,6 @@ void ThreadPool::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_max_time_per_frame"), &ThreadPool::get_max_time_per_frame);
 	ClassDB::bind_method(D_METHOD("set_max_time_per_frame", "value"), &ThreadPool::set_max_time_per_frame);
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "max_time_per_frame"), "set_max_time_per_frame", "get_max_time_per_frame");
-
-	ClassDB::bind_method(D_METHOD("create_execute_job_simple", "object", "method"), &ThreadPool::create_execute_job_simple);
-
-	MethodInfo mi;
-	mi.arguments.push_back(PropertyInfo(Variant::OBJECT, "obj"));
-	mi.arguments.push_back(PropertyInfo(Variant::STRING, "method"));
-
-	mi.name = "create_job";
-	ClassDB::bind_vararg_method(METHOD_FLAGS_DEFAULT, "create_execute_job", &ThreadPool::_create_job_bind, mi);
-
-	ClassDB::bind_method(D_METHOD("get_running_job", "object", "method"), &ThreadPool::get_running_job);
-	ClassDB::bind_method(D_METHOD("get_queued_job", "object", "method"), &ThreadPool::get_queued_job);
 
 	ClassDB::bind_method(D_METHOD("has_job", "job"), &ThreadPool::has_job);
 	ClassDB::bind_method(D_METHOD("add_job", "job"), &ThreadPool::add_job);

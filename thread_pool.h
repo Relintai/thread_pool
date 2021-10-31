@@ -82,19 +82,8 @@ public:
 	void cancel_job_wait(Ref<ThreadPoolJob> job);
 	void cancel_job(Ref<ThreadPoolJob> job);
 
-	Ref<ThreadPoolJob> get_running_job(const Variant &object, const StringName &method);
-	Ref<ThreadPoolJob> get_queued_job(const Variant &object, const StringName &method);
-
 	bool has_job(const Ref<ThreadPoolJob> &job);
 	void add_job(const Ref<ThreadPoolJob> &job);
-
-	Ref<ThreadPoolExecuteJob> create_execute_job_simple(const Variant &object, const StringName &method);
-	Ref<ThreadPoolExecuteJob> create_execute_job(const Variant &object, const StringName &method, VARIANT_ARG_LIST);
-#if VERSION_MAJOR < 4
-	Variant _create_job_bind(const Variant **p_args, int p_argcount, Variant::CallError &r_error);
-#else
-	Variant _create_job_bind(const Variant **p_args, int p_argcount, Callable::CallError &r_error);
-#endif
 
 	void _thread_finished(ThreadPoolContext *context);
 	static void _worker_thread_func(void *user_data);
