@@ -165,6 +165,14 @@ void ThreadPoolJob::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_complete", "value"), &ThreadPoolJob::set_complete);
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "complete"), "set_complete", "get_complete");
 
+	ClassDB::bind_method(D_METHOD("get_cancelled"), &ThreadPoolJob::get_cancelled);
+	ClassDB::bind_method(D_METHOD("set_cancelled", "value"), &ThreadPoolJob::set_cancelled);
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "cancelled"), "set_cancelled", "get_cancelled");
+
+	ClassDB::bind_method(D_METHOD("get_max_allocated_time"), &ThreadPoolJob::get_max_allocated_time);
+	ClassDB::bind_method(D_METHOD("set_max_allocated_time", "value"), &ThreadPoolJob::set_max_allocated_time);
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "max_allocated_time"), "set_max_allocated_time", "get_max_allocated_time");
+
 	ClassDB::bind_method(D_METHOD("get_start_time"), &ThreadPoolJob::get_start_time);
 	ClassDB::bind_method(D_METHOD("set_start_time", "value"), &ThreadPoolJob::set_start_time);
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "start_time"), "set_start_time", "get_start_time");
