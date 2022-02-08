@@ -30,6 +30,8 @@ SOFTWARE.
 #ifndef Reference
 #define Reference RefCounted
 #endif
+#include "core/object/gdvirtual.gen.inc"
+#include "core/object/script_language.h"
 #else
 #include "core/reference.h"
 #endif
@@ -73,6 +75,10 @@ public:
 	bool should_return();
 
 	void execute();
+
+#if VERSION_MAJOR >= 4
+	GDVIRTUAL0(_execute);
+#endif
 
 	ThreadPoolJob();
 	~ThreadPoolJob();

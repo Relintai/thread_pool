@@ -137,7 +137,11 @@ void ThreadPoolJob::execute() {
 	_start_time = OS::get_singleton()->get_ticks_msec();
 #endif
 
+#if VERSION_MAJOR < 4
 	call("_execute");
+#else
+	GDVIRTUAL_CALL(_execute);
+#endif
 }
 
 ThreadPoolJob::ThreadPoolJob() {
@@ -171,7 +175,11 @@ void ThreadPoolJob::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("get_max_allocated_time"), &ThreadPoolJob::get_max_allocated_time);
 	ClassDB::bind_method(D_METHOD("set_max_allocated_time", "value"), &ThreadPoolJob::set_max_allocated_time);
+#if VERSION_MAJOR < 4
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "max_allocated_time"), "set_max_allocated_time", "get_max_allocated_time");
+#else
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "max_allocated_time"), "set_max_allocated_time", "get_max_allocated_time");
+#endif
 
 	ClassDB::bind_method(D_METHOD("get_start_time"), &ThreadPoolJob::get_start_time);
 	ClassDB::bind_method(D_METHOD("set_start_time", "value"), &ThreadPoolJob::set_start_time);
@@ -192,7 +200,12 @@ void ThreadPoolJob::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("should_do", "just_check"), &ThreadPoolJob::should_do, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("should_return"), &ThreadPoolJob::should_return);
 
+#if VERSION_MAJOR < 4
 	BIND_VMETHOD(MethodInfo("_execute"));
+#else
+	GDVIRTUAL_BIND(_execute);
+#endif
+
 	ClassDB::bind_method(D_METHOD("execute"), &ThreadPoolJob::execute);
 
 	ADD_SIGNAL(MethodInfo("completed"));
