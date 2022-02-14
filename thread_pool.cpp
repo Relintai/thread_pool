@@ -233,8 +233,15 @@ void ThreadPool::_worker_thread_func(void *user_data) {
 	while (context->running) {
 		context->semaphore->wait();
 
-		if (!context->job.is_valid())
+		if (!context->job.is_valid()) {
+			ThreadPool::get_singleton()->_thread_finished(context);
 			continue;
+		}
+
+		if (context->job->get_cancelled()) {
+			ThreadPool::get_singleton()->_thread_finished(context);
+			continue;
+		}
 
 		context->job->execute();
 
@@ -265,7 +272,7 @@ void ThreadPool::update() {
 
 		remaining_time -= job->get_current_execution_time();
 
-		if (job->get_complete()) {
+		if (job->get_complete() || job->get_cancelled()) {
 			_queue.write[_current_queue_head++].unref();
 		}
 	}
