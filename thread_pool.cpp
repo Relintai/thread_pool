@@ -216,12 +216,19 @@ void ThreadPool::_thread_finished(ThreadPoolContext *context) {
 
 	context->job.unref();
 
-	if (_current_queue_head != _current_queue_tail) {
+	while (_current_queue_head != _current_queue_tail) {
 		context->job = _queue.get(_current_queue_head);
+
+		if (!context->job.is_valid()) {
+			++_current_queue_head;
+			continue;
+		}
+
 		context->semaphore->post();
 		_queue.write[_current_queue_head].unref();
 
 		++_current_queue_head;
+		break;
 	}
 
 	_THREAD_SAFE_UNLOCK_
