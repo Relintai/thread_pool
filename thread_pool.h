@@ -30,9 +30,11 @@ SOFTWARE.
 #if VERSION_MAJOR > 3
 #include "core/object/object.h"
 #include "core/templates/vector.h"
+#include "core/templates/list.h"
 #else
 #include "core/object.h"
 #include "core/vector.h"
+#include "core/list.h"
 #endif
 
 #include "core/os/semaphore.h"
@@ -68,16 +70,19 @@ public:
 	void set_use_threads(const bool value);
 
 	int get_thread_count() const;
-	void set_thread_count(const bool value);
+	void set_thread_count(const int value);
 
 	int get_thread_fallback_count() const;
-	void set_thread_fallback_count(const bool value);
+	void set_thread_fallback_count(const int value);
 
 	float get_max_work_per_frame_percent() const;
-	void set_max_work_per_frame_percent(const bool value);
+	void set_max_work_per_frame_percent(const float value);
 
 	float get_max_time_per_frame() const;
-	void set_max_time_per_frame(const bool value);
+	void set_max_time_per_frame(const float value);
+
+	bool is_working() const;
+	bool is_working_no_lock() const;
 
 	bool has_job(const Ref<ThreadPoolJob> &job);
 	void add_job(const Ref<ThreadPoolJob> &job);
@@ -90,6 +95,7 @@ public:
 
 	void register_update();
 	void update();
+	void apply_settings();
 
 	ThreadPool();
 	~ThreadPool();
@@ -100,7 +106,9 @@ protected:
 private:
 	static ThreadPool *_instance;
 
+	bool _dirty;
 	bool _use_threads;
+	bool _use_threads_new;
 	int _thread_count;
 	int _thread_fallback_count;
 	float _max_work_per_frame_percent;
@@ -108,15 +116,7 @@ private:
 
 	Vector<ThreadPoolContext *> _threads;
 
-	Vector<Ref<ThreadPoolJob> > _queue;
-	int _current_queue_head;
-	int _current_queue_tail;
-
-	int _queue_start_size;
-	int _queue_grow_size;
-
-	//todo
-	//Vector<Ref<ThreadPoolJob> > _job_pool;
+	List<Ref<ThreadPoolJob>> _queue;
 };
 
 #endif
