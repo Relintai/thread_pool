@@ -264,7 +264,23 @@ void ThreadPool::_worker_thread_func(void *user_data) {
 }
 
 void ThreadPool::register_update() {
-	SceneTree::get_singleton()->CONNECT("idle_frame", this, ThreadPool, update);
+	if (!SceneTree::get_singleton()) {
+		return;
+	}
+
+	if (!SceneTree::get_singleton()->is_connected("idle_frame", this, "update")) {
+		SceneTree::get_singleton()->CONNECT("idle_frame", this, ThreadPool, update);
+	}
+}
+
+void ThreadPool::unregister_update() {
+	if (!SceneTree::get_singleton()) {
+		return;
+	}
+
+	if (SceneTree::get_singleton()->is_connected("idle_frame", this, "update")) {
+		SceneTree::get_singleton()->DISCONNECT("idle_frame", this, ThreadPool, update);
+	}
 }
 
 void ThreadPool::update() {
@@ -329,6 +345,8 @@ void ThreadPool::apply_settings() {
 	}
 
 	_threads.resize(0);
+
+	unregister_update();
 
 	_use_threads = _use_threads_new;
 
@@ -455,5 +473,7 @@ void ThreadPool::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("cancel_job_wait", "job"), &ThreadPool::cancel_job_wait);
 
 	ClassDB::bind_method(D_METHOD("register_update"), &ThreadPool::register_update);
+	ClassDB::bind_method(D_METHOD("unregister_update"), &ThreadPool::unregister_update);
+
 	ClassDB::bind_method(D_METHOD("update"), &ThreadPool::update);
 }

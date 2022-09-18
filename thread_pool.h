@@ -99,6 +99,8 @@ public:
 	static void _worker_thread_func(void *user_data);
 
 	void register_update();
+	void unregister_update();
+
 	void update();
 	void apply_settings();
 
