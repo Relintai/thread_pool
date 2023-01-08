@@ -25,7 +25,9 @@ SOFTWARE.
 
 */
 
-void register_thread_pool_types();
-void unregister_thread_pool_types();
+#include "modules/register_module_types.h"
+
+void initialize_thread_pool_module(ModuleInitializationLevel p_level);
+void uninitialize_thread_pool_module(ModuleInitializationLevel p_level);
 
 #endif

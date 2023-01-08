@@ -26,11 +26,9 @@ SOFTWARE.
 
 #include "core/version.h"
 
-#if VERSION_MAJOR > 3
+#include "core/object/class_db.h"
+
 #include "core/config/engine.h"
-#else
-#include "core/engine.h"
-#endif
 
 #include "thread_pool.h"
 #include "thread_pool_execute_job.h"
@@ -38,18 +36,21 @@ SOFTWARE.
 
 static ThreadPool *thread_pool = NULL;
 
-void register_thread_pool_types() {
+void initialize_thread_pool_module(ModuleInitializationLevel p_level) {
+	if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE) {
+		GDREGISTER_CLASS(ThreadPoolJob);
+		GDREGISTER_CLASS(ThreadPoolExecuteJob);
+		GDREGISTER_CLASS(ThreadPool);
 
-	ClassDB::register_class<ThreadPoolJob>();
-	ClassDB::register_class<ThreadPoolExecuteJob>();
-
-	thread_pool = memnew(ThreadPool);
-	ClassDB::register_class<ThreadPool>();
-	Engine::get_singleton()->add_singleton(Engine::Singleton("ThreadPool", ThreadPool::get_singleton()));
+		thread_pool = memnew(ThreadPool);
+		Engine::get_singleton()->add_singleton(Engine::Singleton("ThreadPool", ThreadPool::get_singleton()));
+	}
 }
 
-void unregister_thread_pool_types() {
-	if (thread_pool) {
-		memdelete(thread_pool);
+void uninitialize_thread_pool_module(ModuleInitializationLevel p_level) {
+	if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE) {
+		if (thread_pool) {
+			memdelete(thread_pool);
+		}
 	}
 }
