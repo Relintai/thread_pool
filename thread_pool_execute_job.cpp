@@ -59,17 +59,19 @@ void ThreadPoolExecuteJob::_execute() {
 	_object->call(_method, const_cast<const Variant **>(&_argptr), _argcount, error);
 }
 
-void ThreadPoolExecuteJob::setup(const Variant &obj, const StringName &p_method, VARIANT_ARG_DECLARE) {
+void ThreadPoolExecuteJob::_setup(const Variant &obj, const StringName &p_method, const Variant **p_arg, int p_argcount) {
 	set_complete(false);
 	set_cancelled(false);
 	_object = obj;
 	_method = p_method;
 
-	_argptr[0] = p_arg1;
-	_argptr[1] = p_arg2;
-	_argptr[2] = p_arg3;
-	_argptr[3] = p_arg4;
-	_argptr[4] = p_arg5;
+	for (int i = 0; i < 5; ++i) {
+		if (i < p_argcount) {
+			_argptr[i] = *p_arg[i];
+		} else {
+			_argptr[i] = Variant();
+		}
+	}
 
 	for (int i = 4; i >= 0; --i) {
 		if (_argptr[i].get_type() != Variant::NIL) {
@@ -134,27 +136,27 @@ Variant ThreadPoolExecuteJob::_setup_bind(const Variant **p_args, int p_argcount
 
 	if (p_argcount > 2) {
 		_argcount = 1;
-		_argptr[0] = p_args[2];
+		_argptr[0] = *p_args[2];
 	}
 
 	if (p_argcount > 3) {
 		_argcount = 2;
-		_argptr[1] = p_args[3];
+		_argptr[1] = *p_args[3];
 	}
 
 	if (p_argcount > 4) {
 		_argcount = 3;
-		_argptr[2] = p_args[4];
+		_argptr[2] = *p_args[4];
 	}
 
 	if (p_argcount > 5) {
 		_argcount = 4;
-		_argptr[3] = p_args[5];
+		_argptr[3] = *p_args[5];
 	}
 
 	if (p_argcount > 6) {
 		_argcount = 5;
-		_argptr[4] = p_args[6];
+		_argptr[4] = *p_args[6];
 	}
 
 	if (!_object || !_object->has_method(_method)) {

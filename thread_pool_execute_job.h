@@ -36,7 +36,18 @@ public:
 	void set_method(const StringName &value);
 
 	void _execute();
-	void setup(const Variant &obj, const StringName &p_method, VARIANT_ARG_LIST);
+
+	template <typename... VarArgs>
+	void setup(int p_peer_id, const StringName &p_method, VarArgs... p_args) {
+		Variant args[sizeof...(p_args) + 1] = { p_args..., Variant() }; // +1 makes sure zero sized arrays are also supported.
+		const Variant *argptrs[sizeof...(p_args) + 1];
+		for (uint32_t i = 0; i < sizeof...(p_args); i++) {
+			argptrs[i] = &args[i];
+		}
+		_setup(p_peer_id, p_method, sizeof...(p_args) == 0 ? nullptr : (const Variant **)argptrs, sizeof...(p_args));
+	}
+
+	void _setup(const Variant &obj, const StringName &p_method, const Variant **p_arg, int p_argcount);
 #if VERSION_MAJOR < 4
 	Variant _setup_bind(const Variant **p_args, int p_argcount, Variant::CallError &r_error);
 #else

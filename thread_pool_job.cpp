@@ -201,7 +201,7 @@ void ThreadPoolJob::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("should_return"), &ThreadPoolJob::should_return);
 
 #if VERSION_MAJOR < 4
-	BIND_VMETHOD(MethodInfo("_execute"));
+	//BIND_VMETHOD(MethodInfo("_execute"));
 #else
 	GDVIRTUAL_BIND(_execute);
 #endif
