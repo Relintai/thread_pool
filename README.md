@@ -8,10 +8,13 @@ is allocated per frame.
 
 You can access it's setting from the `Project->Project Settings...` menu, in the `ThreadPool` category.
 
-# Pre-built binaries
+## Godot Version Support
 
-You can grab a pre-built editor binary from the [Broken Seals](https://github.com/Relintai/broken_seals/releases) 
-repo, should you want to. It contains all my modules.
+This branch tries to follow godot's master branch (as much as I have time).
+
+For different godot versions look at the other branches.
+
+Status for this branch: Update for 4.0 is work in progress.
 
 # ThreadPoolJob
 
